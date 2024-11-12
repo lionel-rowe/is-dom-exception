@@ -1,7 +1,7 @@
 {
 	"lock": false,
 	"name": "@li/is-dom-exception",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"exports": {
 		".": "./mod.ts"
 	},
@@ -9,8 +9,9 @@
 		"test": "deno test"
 	},
 	"imports": {
+		"@li/error-is-error-polyfill": "jsr:@li/error-is-error-polyfill@^0.2.0",
 		"@std/assert": "jsr:@std/assert@^1.0.2",
-		"@std/async": "jsr:@std/async@^1.0.4"
+		"@std/testing": "jsr:@std/testing@^1.0.4"
 	},
 	"fmt": {
 		"semiColons": false,

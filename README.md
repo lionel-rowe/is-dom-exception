@@ -13,6 +13,6 @@ const { reason } = ac.signal
 
 if (isDomException(reason, DOM_EXCEPTION_NAME.AbortError)) {
 	// type is now narrowed to `DOMException & { name: 'AbortError' }`
-	const _: DOMException & { name: 'AbortError' } = reason
+	const exception: DOMException & { name: 'AbortError' } = reason
 }
 ```
