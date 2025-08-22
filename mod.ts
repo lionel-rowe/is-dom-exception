@@ -10,14 +10,14 @@
  * @param name A `DOMException` name to check against
  * @returns Whether `x` is a `DOMException` with the given name
  */
-export function isDomException<T extends DomExceptionName | undefined>(
+export function isDomException<T extends DomExceptionName[]>(
 	x: unknown,
-	name?: T,
-): x is DOMException & { name: T extends undefined ? string : T } {
+	...names: T
+): x is DOMException & { name: T extends [] ? string : T[number] } {
 	// @ts-ignore - for forward-compat/enhancement. No-op if `Error.isError` is not available in current env.
 	if (Error.isError?.(x) === false) return false
 	if (Object.prototype.toString.call(x) !== '[object DOMException]') return false
-	if (name && (x as DOMException).name !== name) return false
+	if (names.length && !(names as unknown[] as string[]).includes((x as DOMException).name)) return false
 	return true
 }
 

@@ -55,6 +55,12 @@ Deno.test(isDomException.name, async (t) => {
 			// @ts-expect-error name
 			const _2: DOMException & { name: 'DataCloneError' } = reason
 		}
+
+		if (isDomException(reason, 'AbortError', 'TimeoutError')) {
+			const _1: DOMException & { name: 'AbortError' | 'TimeoutError' } = reason
+			// @ts-expect-error name
+			const _3: DOMException & { name: 'DataCloneError' } = reason
+		}
 	})
 	await t.step('doesn’t narrow `name` prop type if no `name` arg is supplied', () => {
 		const reason: unknown = {}
