@@ -33,6 +33,8 @@ export type DomExceptionName = typeof DOM_EXCEPTION_NAME[keyof typeof DOM_EXCEPT
  * @see {@link https://webidl.spec.whatwg.org/#idl-DOMException-error-names | Base DOMException error names} in the Web IDL spec.
  */
 export const DOM_EXCEPTION_NAME = {
+	/** @deprecated Use RangeError instead. */
+	IndexSizeError: 'IndexSizeError',
 	/** The operation would yield an incorrect node tree. [DOM] */
 	HierarchyRequestError: 'HierarchyRequestError',
 	/** The object is in the wrong document. [DOM] */
@@ -55,13 +57,20 @@ export const DOM_EXCEPTION_NAME = {
 	InvalidModificationError: 'InvalidModificationError',
 	/** The operation is not allowed by Namespaces in XML. [XML-NAMES] */
 	NamespaceError: 'NamespaceError',
+	/** @deprecated Use TypeError for invalid arguments, "NotSupportedError" DOMException for unsupported operations, and "NotAllowedError" DOMException for denied requests instead.
+	 */
+	InvalidAccessError: 'InvalidAccessError',
+	/** @deprecated Use TypeError instead. */
+	TypeMismatchError: 'TypeMismatchError',
 	/** The operation is insecure. */
 	SecurityError: 'SecurityError',
 	/** A network error occurred. */
 	NetworkError: 'NetworkError',
 	/** The operation was aborted. */
 	AbortError: 'AbortError',
-	/** The quota has been exceeded. */
+	/** @deprecated */
+	URLMismatchError: 'URLMismatchError',
+	/** @deprecated Use the QuotaExceededError DOMException-derived interface instead. */
 	QuotaExceededError: 'QuotaExceededError',
 	/** The operation timed out. */
 	TimeoutError: 'TimeoutError',
@@ -73,9 +82,9 @@ export const DOM_EXCEPTION_NAME = {
 	EncodingError: 'EncodingError',
 	/** The I/O read operation failed. */
 	NotReadableError: 'NotReadableError',
-	/** The operation failed for an unknown transient reason (e.g. out of memory).*/
+	/** The operation failed for an unknown transient reason (e.g. out of memory). */
 	UnknownError: 'UnknownError',
-	/** A mutation operation in a transaction failed because a constraint was not satisfied. [INDEXEDDB]*/
+	/** A mutation operation in a transaction failed because a constraint was not satisfied. [INDEXEDDB] */
 	ConstraintError: 'ConstraintError',
 	/** Provided data is inadequate. */
 	DataError: 'DataError',
@@ -87,7 +96,7 @@ export const DOM_EXCEPTION_NAME = {
 	VersionError: 'VersionError',
 	/** The operation failed for an operation-specific reason. */
 	OperationError: 'OperationError',
-	/** The request is not allowed by the user agent or the platform in the current context, possibly because the user denied permission.*/
+	/** The request is not allowed by the user agent or the platform in the current context, possibly because the user denied permission. */
 	NotAllowedError: 'NotAllowedError',
 	/** The user opted out of the process. */
 	OptOutError: 'OptOutError',
