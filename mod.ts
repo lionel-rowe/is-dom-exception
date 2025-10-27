@@ -14,10 +14,11 @@ export function isDomException<T extends DomExceptionName[]>(
 	x: unknown,
 	...names: T
 ): x is DOMException & { name: T extends [] ? string : T[number] } {
-	// @ts-ignore - for forward-compat/enhancement. No-op if `Error.isError` is not available in current env.
-	if (Error.isError?.(x) === false) return false
+	// Also check `instanceof Error` for JSDOM compat
+	// See https://github.com/jsdom/jsdom/issues/3973
+	if (Error.isError?.(x) === false && !(x instanceof Error)) return false
 	if (Object.prototype.toString.call(x) !== '[object DOMException]') return false
-	if (names.length && !(names as unknown[] as string[]).includes((x as DOMException).name)) return false
+	if (names.length && !(names as string[]).includes(x.name)) return false
 	return true
 }
 
@@ -57,8 +58,7 @@ export const DOM_EXCEPTION_NAME = {
 	InvalidModificationError: 'InvalidModificationError',
 	/** The operation is not allowed by Namespaces in XML. [XML-NAMES] */
 	NamespaceError: 'NamespaceError',
-	/** @deprecated Use TypeError for invalid arguments, "NotSupportedError" DOMException for unsupported operations, and "NotAllowedError" DOMException for denied requests instead.
-	 */
+	/** @deprecated Use TypeError for invalid arguments, "NotSupportedError" DOMException for unsupported operations, and "NotAllowedError" DOMException for denied requests instead. */
 	InvalidAccessError: 'InvalidAccessError',
 	/** @deprecated Use TypeError instead. */
 	TypeMismatchError: 'TypeMismatchError',

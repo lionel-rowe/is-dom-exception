@@ -44,6 +44,7 @@ Deno.test(isDomException.name, async (t) => {
 				if (!isDomException(e)) throw e
 				assert(isDomException(e, name))
 				assert(isDomException(e, DOM_EXCEPTION_NAME[name]))
+				assert(!isDomException(e, 'IndexSizeError'))
 			}
 		})
 	}
@@ -85,6 +86,12 @@ Deno.test(isDomException.name, async (t) => {
 	})
 	await t.step('`false` for non-DOMException Error', () => {
 		assert(!isDomException(new Error('foo')))
+	})
+	await t.step('`false` for fake DOMException class that doesn’t inherit from `Error`', () => {
+		class DOMException {
+			[Symbol.toStringTag] = 'DOMException'
+		}
+		assert(!isDomException(new DOMException()))
 	})
 	await t.step('with Error.isError polyfill', () => {
 		// @ts-ignore polyfill
