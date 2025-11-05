@@ -1,25 +1,29 @@
 /**
  * @module
- * A small utility to check if a value (e.g. a thrown error) is a `DOMException` with the given `name`.
+ * A small utility to check if a value (e.g. a thrown error) is a `DOMException`.
  */
 
 /**
- * Check if a value is a `DOMException` with the given name.
+ * Check if a value is a `DOMException`, optionally specifying one or more `names`.
  *
- * @param x Value to check
- * @param name A `DOMException` name to check against
- * @returns Whether `x` is a `DOMException` with the given name
+ * @param value Value to check
+ * @param names `DOMException` names to check against
+ * @returns Whether `value` is a `DOMException` with one of the given names
  */
 export function isDomException<T extends DomExceptionName[]>(
-	x: unknown,
+	value: unknown,
 	...names: T
-): x is DOMException & { name: T extends [] ? string : T[number] } {
-	// Also check `instanceof Error` for JSDOM compat
-	// See https://github.com/jsdom/jsdom/issues/3973
-	if (Error.isError?.(x) === false && !(x instanceof Error)) return false
-	if (Object.prototype.toString.call(x) !== '[object DOMException]') return false
-	if (names.length && !(names as string[]).includes(x.name)) return false
-	return true
+): value is DOMException & { name: T extends [] ? string : T[number] } {
+	const getName = Object.getOwnPropertyDescriptor(DOMException.prototype, 'name')!.get!
+
+	try {
+		// Web IDL property getter will throw on invocation if target is not a `DOMException`
+		const name: string = getName.call(value)
+		for (const n of names) if (n === name) return true
+		return names.length === 0
+	} catch {
+		return false
+	}
 }
 
 /**
@@ -30,7 +34,7 @@ export function isDomException<T extends DomExceptionName[]>(
 export type DomExceptionName = typeof DOM_EXCEPTION_NAME[keyof typeof DOM_EXCEPTION_NAME]
 
 /**
- * `DOMException` error name values (deprecated values are omitted as they shouldn't be relied upon).
+ * `DOMException` error name values.
  * @see {@link https://webidl.spec.whatwg.org/#idl-DOMException-error-names | Base DOMException error names} in the Web IDL spec.
  */
 export const DOM_EXCEPTION_NAME = {

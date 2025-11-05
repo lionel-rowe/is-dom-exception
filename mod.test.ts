@@ -1,16 +1,13 @@
-import { assert } from '@std/assert'
-import { stub } from '@std/testing/mock'
-import { errorIsError } from '@li/error-is-error-polyfill'
+// @ts-types="@types/jsdom"
+import { JSDOM } from 'jsdom'
+import { assert, assertRejects } from '@std/assert'
 import { DOM_EXCEPTION_NAME, type DomExceptionName, isDomException } from './mod.ts'
+import { stubProperty } from '@std/testing/unstable-stub-property'
 
-const throwingTests: { name: DomExceptionName; test: () => unknown }[] = [
+const throwingTests: { name: DomExceptionName; test(): void | Promise<void> }[] = [
 	{
 		name: 'AbortError',
-		test: () => {
-			const ac = new AbortController()
-			ac.abort()
-			throw ac.signal.reason
-		},
+		test: () => AbortSignal.abort().throwIfAborted(),
 	},
 	{
 		name: 'TimeoutError',
@@ -23,11 +20,11 @@ const throwingTests: { name: DomExceptionName; test: () => unknown }[] = [
 	},
 	{
 		name: 'DataCloneError',
-		test: () => structuredClone({ fn: () => {} }),
+		test: () => void structuredClone(Symbol()),
 	},
 	{
 		name: 'InvalidCharacterError',
-		test: () => atob('!'),
+		test: () => void atob('!'),
 	},
 ]
 
@@ -37,15 +34,11 @@ Deno.test(isDomException.name, async (t) => {
 	})
 	for (const { test, name } of throwingTests) {
 		await t.step(name, async () => {
-			try {
-				await test()
-				throw new Error('Expected test to throw')
-			} catch (e) {
-				if (!isDomException(e)) throw e
-				assert(isDomException(e, name))
-				assert(isDomException(e, DOM_EXCEPTION_NAME[name]))
-				assert(!isDomException(e, 'IndexSizeError'))
-			}
+			const err = await assertRejects(async () => await test())
+			if (!isDomException(err)) throw err
+			assert(isDomException(err, name))
+			assert(isDomException(err, DOM_EXCEPTION_NAME[name]))
+			assert(!isDomException(err, 'IndexSizeError'))
 		})
 	}
 	await t.step('narrows type', () => {
@@ -87,23 +80,33 @@ Deno.test(isDomException.name, async (t) => {
 	await t.step('`false` for non-DOMException Error', () => {
 		assert(!isDomException(new Error('foo')))
 	})
-	await t.step('`false` for fake DOMException class that doesn’t inherit from `Error`', () => {
-		class DOMException {
-			[Symbol.toStringTag] = 'DOMException'
-		}
-		assert(!isDomException(new DOMException()))
+	await t.step('`false` for fake DOMException class that doesn’t inherit from real `DOMException`', () => {
+		assert(
+			!isDomException(
+				new (class DOMException extends Error {
+					[Symbol.toStringTag] = 'DOMException'
+				})(),
+			),
+		)
 	})
-	await t.step('with Error.isError polyfill', () => {
-		// @ts-ignore polyfill
-		using _ = stub(Error, 'isError', errorIsError)
+	await t.step('`true` for DOMException subclass', () => {
+		assert(isDomException(
+			new (class Subclass extends DOMException {
+				[Symbol.toStringTag] = 'Subclass'
+			})(),
+		))
+	})
+	await t.step('with patched global `DOMException` from JSDOM', () => {
+		const jsdom = new JSDOM('')
+		const OriginalDomException = globalThis.DOMException
 
-		try {
-			atob('!')
-		} catch (e) {
-			assert(isDomException(e, 'InvalidCharacterError'))
+		{
+			using _ = stubProperty(globalThis, 'DOMException', jsdom.window.DOMException)
+			assert(!isDomException(new OriginalDomException()))
+			assert(isDomException(new jsdom.window.DOMException()))
 		}
 
-		assert(!isDomException({}))
-		assert(!isDomException(new Error('foo')))
+		assert(isDomException(new OriginalDomException()))
+		assert(!isDomException(new jsdom.window.DOMException()))
 	})
 })
